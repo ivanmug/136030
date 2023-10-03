@@ -12,7 +12,7 @@ include('connection.php');
     ></script>
     <link rel="stylesheet" href="../css/style-signup.css" />
     <link rel="icon" href="../images/logo3.png" type="image/gif" />
-    <title>Sign in & Sign up Form | Avodoc</title>
+    <title>Sign in & Sign up | Avodoc</title>
   </head>
   <body>
     <div class="container">
@@ -31,7 +31,7 @@ include('connection.php');
             <input type="submit" value="Login" class="btn solid" name="login" />
             <a class="social-text" href="recover_psw.php" class="btn btn-link">Forgot Your Password?</a>
             <p class="social-text">Or Sign in with social platforms</p>
-            <div class="social-media">
+            <!--<div class="social-media">
               <a href="#" class="social-icon">
                 <i class="fab fa-facebook-f"></i>
               </a>
@@ -44,7 +44,7 @@ include('connection.php');
               <a href="#" class="social-icon">
                 <i class="fab fa-linkedin-in"></i>
               </a>
-            </div>
+            </div>-->
           </form>
           <form action="connection.php" method="POST" name="register" class="sign-up-form">
             <h2 class="title">Sign up</h2>
@@ -62,7 +62,7 @@ include('connection.php');
             </div>
             <input type="submit" class="btn" value="Sign up" name="register" />
             <p class="social-text">Or Sign up with social platforms</p>
-            <div class="social-media">
+            <!--<div class="social-media">
               <a href="#" class="social-icon">
                 <i class="fab fa-facebook-f"></i>
               </a>
@@ -74,8 +74,8 @@ include('connection.php');
               </a>
               <a href="#" class="social-icon">
                 <i class="fab fa-linkedin-in"></i>
-              </a>
-            </div>
+              </a> 
+            </div>-->
           </form>
         </div>
       </div>
@@ -85,8 +85,7 @@ include('connection.php');
           <div class="content">
             <h3>New here ?</h3>
             <p>
-              Lorem ipsum, dolor sit amet consectetur adipisicing elit. Debitis,
-              ex ratione. Aliquid!
+              Welcome to AVODOC
             </p>
             <button class="btn transparent" id="sign-up-btn">
               Sign up
@@ -99,8 +98,7 @@ include('connection.php');
           <div class="content">
             <h3>One of us ?</h3>
             <p>
-              Lorem ipsum dolor sit amet consectetur adipisicing elit. Nostrum
-              laboriosam ad deleniti.
+              welcome to AVODOC
             </p>
             <button class="btn transparent" id="sign-in-btn">
               Sign in

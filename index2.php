@@ -42,10 +42,7 @@
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                <div class="navbar-nav">
                   <a class="nav-item nav-link" href="index.php">Home</a>
-                  <a class="nav-item nav-link" href="about.php">About</a>
-                  <a class="nav-item nav-link" href="services.php">Services</a>
-                  <a class="nav-item nav-link" href="products.php">Our Products</a>
-                  <a class="nav-item nav-link" href="contact.php">Contact us</a>
+                  
                </div>
             </div>
             <div class="login_menu">
@@ -64,9 +61,8 @@
                      <div class="container">
                         <div class="row">
                            <div class="col-md-6">
-                              <h1 class="banner_taital">Dedicated<br> <span style="color: #fff;">To Building Farms</span></h1>
-                              <p class="banner_text">It is a long established fact that a reader will be distracted by the readable content</p>
-                              <div class="read_bt"><a href="#">Read More</a></div>
+                            <h1 class="banner_taital">AVOCADO DISEASE DETECTION<br> <span style="color: #fff;">using CNN</span></h1>
+                              <div class="read_bt"><a href="#"></a></div>
                            </div>
                            <div class="col-md-6">
                               <div><img src="images/img-1.png" class="image_1"></div>
@@ -75,10 +71,7 @@
                         <div class="custum_menu">
                            <ul>
                               <li class="active"><a href="index.html">Home</a></li>
-                              <li><a href="about.php">About</a></li>
-                              <li><a href="services.php">Services</a></li>
-                              <li><a href="products.php">Our Products</a></li>
-                              <li><a href="contact.php">Contact us</a></li>
+                              
                            </ul>
                         </div>
                      </div>
@@ -87,9 +80,8 @@
                      <div class="container">
                         <div class="row">
                            <div class="col-md-6">
-                              <h1 class="banner_taital">Dedicated<br> <span style="color: #fff;">To Building Farms</span></h1>
-                              <p class="banner_text">It is a long established fact that a reader will be distracted by the readable content</p>
-                              <div class="read_bt"><a href="#">Read More</a></div>
+                            <h1 class="banner_taital">AVOCADO DISEASE DETECTION<br> <span style="color: #fff;">using CNN</span></h1>
+                              
                            </div>
                            <div class="col-md-6">
                               <div><img src="images/img-1.png" class="image_1"></div>
@@ -98,10 +90,7 @@
                         <div class="custum_menu">
                            <ul>
                               <li class="active"><a href="index.html">Home</a></li>
-                              <li><a href="about.html">About</a></li>
-                              <li><a href="services.html">Services</a></li>
-                              <li><a href="products.html">Our Products</a></li>
-                              <li><a href="contact.html">Contact us</a></li>
+                              
                            </ul>
                         </div>
                      </div>
@@ -110,9 +99,9 @@
                      <div class="container">
                         <div class="row">
                            <div class="col-md-6">
-                              <h1 class="banner_taital">Dedicated<br> <span style="color: #fff;">To Building Farms</span></h1>
-                              <p class="banner_text">It is a long established fact that a reader will be distracted by the readable content</p>
-                              <div class="read_bt"><a href="#">Read More</a></div>
+                              <h1 class="banner_taital">AVOCADO DISEASE DETECTION<br> <span style="color: #fff;">using CNN</span></h1>
+                              <p class="banner_text"></p>
+                              <div class="read_bt"><a href="#"></a></div>
                            </div>
                            <div class="col-md-6">
                               <div><img src="images/img-1.png" class="image_1"></div>
@@ -121,10 +110,7 @@
                         <div class="custum_menu">
                            <ul>
                               <li class="active"><a href="index.html">Home</a></li>
-                              <li><a href="about.html">About</a></li>
-                              <li><a href="services.html">Services</a></li>
-                              <li><a href="products.html">Our Products</a></li>
-                              <li><a href="contact.html">Contact us</a></li>
+                              
                            </ul>
                         </div>
                      </div>
@@ -190,7 +176,7 @@
                  <p class="ipsum_text">Avodoc</p>
               </div>
               <div class="col-lg-3 col-sm-6">
-                 <h2 class="useful_text">Services</h2>
+                 <h2 class="useful_text"></h2>
                  <div class="footer_links">
                     <ul>
                        
@@ -198,7 +184,7 @@
                  </div>
               </div>
               <div class="col-lg-3 col-sm-6">
-                 <h2 class="useful_text">Our Product</h2>
+                 <h2 class="useful_text"></h2>
                  <div class="footer_links">
                     <ul>
                        
