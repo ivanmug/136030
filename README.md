@@ -1,4 +1,2 @@
-# Objective
-This task is meant to introduce the student to the working basics of the Git Source Versioning
-Ecosystem. It will introduce (through practical) the working of the git tool, the online GitHub
-repository management system, and how to synchronize the codebase between the two.
+A plant disease predictor app using python and flask
+app.secret_key = 1a2b3c4d5e6d7g8h9i10

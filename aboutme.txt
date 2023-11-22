@@ -1,3 +1,0 @@
-136030
-Ivan Mugunga
-Avocado Disease Detection using CNN
