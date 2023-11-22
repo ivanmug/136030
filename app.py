@@ -725,7 +725,7 @@ def delete_one(mysql, table_name, modifier, item_id):
 		print("Problem deleting from db: " + str(e))
 		return False
       
-###############CONTACT#######
+###############CONTACT####
 
 
 
