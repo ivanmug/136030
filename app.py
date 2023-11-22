@@ -724,6 +724,9 @@ def delete_one(mysql, table_name, modifier, item_id):
 	except Exception as e:
 		print("Problem deleting from db: " + str(e))
 		return False
+      
+###############CONTACT#######
+
 
 
 if __name__ == "__main__":
