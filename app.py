@@ -24,15 +24,18 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 from functools import wraps
-from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.security import generate_password_hash
 import base64
 from flask_mail import Mail, Message
 import jwt
 import smtplib, ssl
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-
-
+from itsdangerous import URLSafeTimedSerializer
+from werkzeug.security import check_password_hash
+from PIL import Image
+import torchvision.transforms.functional as TF
+import CNN
 
 
 app = Flask(__name__)
@@ -144,6 +147,43 @@ def predict_image(img, model=disease_model):
 
 
 
+disease_info = pd.read_csv('disease_info.csv' , encoding='cp1252')
+supplement_info = pd.read_csv('supplement_info.csv',encoding='cp1252')
+
+model = CNN.CNN(39)    
+model.load_state_dict(torch.load("plant_disease_model_1_latest.pt"))
+model.eval()
+
+def prediction(image_path):
+    image = Image.open(image_path)
+    image = image.resize((224, 224))
+    input_data = TF.to_tensor(image)
+    input_data = input_data.view((-1, 3, 224, 224))
+    output = model(input_data)
+    output = output.detach().numpy()
+    index = np.argmax(output)
+    return index
+
+@app.route('/submit', methods=['GET', 'POST'])
+def submit():
+    if request.method == 'POST':
+        image = request.files['image']
+        filename = image.filename
+        file_path = os.path.join('static/uploads', filename)
+        image.save(file_path)
+        print(file_path)
+        pred = prediction(file_path)
+        title = disease_info['disease_name'][pred]
+        description =disease_info['description'][pred]
+        prevent = disease_info['Possible Steps'][pred]
+        image_url = disease_info['image_url'][pred]
+        supplement_name = supplement_info['supplement name'][pred]
+        supplement_image_url = supplement_info['supplement image'][pred]
+        supplement_buy_link = supplement_info['buy link'][pred]
+        return render_template('submit.html',username=session['username'] , title = title , desc = description , prevent = prevent , 
+                               image_url = image_url , pred = pred ,sname = supplement_name , simage = supplement_image_url , buy_link = supplement_buy_link)
+
+
 @ app.route('/')
 def home1():
     return render_template('index2.html')
@@ -166,32 +206,28 @@ def home3():
     return redirect(url_for('admin')) 
 @ app.route('/crop-recommend')
 def crop_recommend():
-    return render_template('crop.html')
+    return render_template('crop.html',username=session['username'])
 
 @ app.route('/login')
 def login():
-    print("mysql.connection:", mysql.connection)  # Print the value of mysql.connection
     return render_template('login/signup-login.html')
 
 # http://localhost:5000/login/ - this will be the login page, we need to use both GET and POST requests
 @app.route('/logini', methods=['GET', 'POST'])
 def logini():
-    msg = ''
     if request.method == 'POST' and 'email' in request.form and 'password' in request.form:
         email = request.form['email']
         password = request.form['password']
 
-        hash = password + os.getenv('app.secret_key')
-        hash = hashlib.sha1(hash.encode())
-        password = hash.hexdigest()
 
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
-        cursor.execute('SELECT * FROM farmers WHERE email = %s AND password = %s', (email, password))
+        cursor.execute('SELECT * FROM farmers WHERE email = %s', (email,))
         account = cursor.fetchone()
+        print(account['password'])
 
-        if account:
-            cursor.execute('SELECT * FROM farmers WHERE email = %s AND password = %s AND status = 1', (email, password))
+        if account and check_password_hash(account['password'], password):
+            cursor.execute('SELECT * FROM farmers WHERE email = %s AND status = 1', (email,))
             verified_account = cursor.fetchone()
             if verified_account:
                 session['loggedin'] = True
@@ -237,10 +273,7 @@ def register():
         else:
     
             # Hash the password
-            hash = password + os.getenv('app.secret_key')
-            hash = hashlib.sha1(hash.encode())
-            password = hash.hexdigest()
-            print(password)
+            password = generate_password_hash(request.form['password'])
             # Account doesnt exists and the form data is valid, now insert new account into accounts table
             cursor.execute('INSERT INTO farmers VALUES (NULL, %s, %s, %s, %s)', (username,email_address, password, status))
             mysql.connection.commit()
@@ -281,7 +314,7 @@ def register():
                 <html>
                 <body>
                     <p>Hi,<br>
-                    Dear user, </p> <h3>Your verification OTP code is
+                    Dear user, </p> <h3>Your verification OTP code is </h3>
                     <br><br>
                       {token}
                     </p>
@@ -382,7 +415,7 @@ def disease_prediction():
         prediction = Markup(str(disease_dic[prediction]))
         return render_template('disease-result.html', prediction=prediction)
 
-    return render_template('disease.html')
+    return render_template('disease.html',username=session['username'])
 
     @app.route('/service-worker.js')
     def sw():
@@ -398,9 +431,41 @@ def profile():
         cursor.execute('SELECT * FROM farmers WHERE id = %s', (session['id'],))
         account = cursor.fetchone()
         # Show the profile page with account info
-        return render_template('login/profile.html', account=account)
+        return render_template('login/profile.html', account=account,username=session['username'])
     # User is not logged in redirect to login page
     return redirect(url_for('login'))
+
+
+@app.route('/edit_profile/<string:act>/<int:modifier_id>', methods=['GET', 'POST'])
+def edit_profile(modifier_id, act):
+	if act == "add":
+		return render_template('login/edit_profile.html', data="", act="add")
+	else:
+		data = fetch_one(mysql, "farmers", "id", modifier_id)
+	
+		if data:
+			return render_template('login/edit_profile.html', data=data, act=act)
+		else:
+			return 'Error loading #%s' % modifier_id
+          
+@app.route('/saveprofile', methods=['GET', 'POST'])
+def saveprofile():
+	cat = ''
+	if request.method == 'POST':
+		post_data = request.form.to_dict()
+		if 'password' in post_data:
+			post_data['password'] = generate_password_hash(post_data['password']) 
+		if post_data['act'] == 'add':
+			cat = post_data['cat']
+			insert_one(mysql, cat, post_data)
+		elif post_data['act'] == 'edit':
+			cat = post_data['cat']
+			update_one(mysql, cat, post_data, post_data['modifier'], post_data['id'])
+	else:
+		if request.args['act'] == 'delete':
+			cat = request.args['cat']
+			delete_one(mysql, cat, request.args['modifier'], request.args['id'])
+	return redirect("./" + cat)
 
 # http://localhost:5000/python/logout - this will be the logout page
 @app.route('/logout')
@@ -416,26 +481,147 @@ def logout():
 @app.route("/verify-email", methods=['GET', 'POST'])
 def verify_email():
     msg = ''
+    try:
+        if request.method == 'POST':
+            token = request.form['token']
+            data = jwt.decode(token, os.getenv('app.secret_key'),algorithms=["HS256"])
+            email_address = data["email_address"]
+            password = data["password"]
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute("UPDATE farmers SET status = 1 WHERE email = %s", (email_address,))
+            mysql.connection.commit()
+
+            msg = 'Account verified'
+            flash("Your account has successfully been registered!", "success")
+            return render_template('login/signup-login.html', msg=msg)
+        elif request.method == 'GET':
+            return render_template('login/verify_email.html', msg=msg)
+    except jwt.DecodeError:
+        flash("Invalid token!", "danger")
+        return render_template('login/verify_email.html', msg='Invalid token')
+    except Exception as e:
+        flash(str(e), "danger")
+        return render_template('login/verify_email.html', msg='An error occurred')
+
+
+###################
+####Recover########
+###################
+@app.route('/forgot_password')
+def forgot_password():
+     return render_template("login/recover.html")
+@app.route('/recover', methods=['GET', 'POST'])
+def recover():
+    if request.method == 'POST':
+        email_address = request.form['email']
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        # cursor.execute('SELECT * FROM farmers WHERE username = %s', (username))
+        cursor.execute( "SELECT * FROM farmers WHERE email LIKE %s", [email_address] )
+        account = cursor.fetchone()
+
+        if account:
+            serializer = URLSafeTimedSerializer(os.getenv('app.secret_key'))
+            token = serializer.dumps(email_address, salt = os.getenv('salt'))
+
+            port = os.getenv('port')  # For starttls
+            smtp_server = os.getenv('smtp_server')
+            sender_email = os.getenv('sender_email')
+            receiver_email = email_address
+            password = os.getenv('password')
+
+            # Convert the token to a string
+            #token_str = token.decode('utf-8')
+
+            link = url_for('reset_with_token', token=token, _external=True)
+
+
+            try:
+                
+                message = MIMEMultipart("alternative")
+                message["Subject"] = "Password Reset Request"
+                message["From"] = sender_email
+                message["To"] = receiver_email
+
+                # Create the plain-text and HTML version of your message
+                text = """\
+                Hi,
+                Your link is {}
+                With regards,
+                Avodoc""".format(link)
+                html = """\
+                <html>
+                <body>
+                    <p>Hi,<br>
+                    Dear user, </p> <h3>Your link is </h3>
+                    <br><br>
+                      {}
+                    </p>
+                    <br><br>
+                    <p>With regards,</p>
+                    <b>Avodoc</b>
+                </body>
+                </html>
+                """.format(link)
+
+                # Turn these into plain/html MIMEText objects
+                part1 = MIMEText(text, "plain")
+                part2 = MIMEText(html, "html")
+
+                # Add HTML/plain-text parts to MIMEMultipart message
+                # The email client will try to render the last part first
+                message.attach(part1)
+                message.attach(part2)
+
+                context = ssl.create_default_context()
+                with smtplib.SMTP(smtp_server, port) as server:
+                    server.ehlo()  # Can be omitted
+                    server.starttls(context=context)
+                    server.ehlo()  # Can be omitted
+                    server.login(sender_email, password)
+                    server.sendmail(sender_email, receiver_email, message.as_string())
+                flash('An email has been sent with instructions to reset your password.', 'success')
+                
+            except Exception as e:
+                print(f"Error sending email: {e}")
+                return render_template("login/recover.html")
+        else:
+            flash('No account found for that email address.', 'danger')
+
+    return render_template('login/recover.html')
+
+@app.route('/reset/<token>', methods=['GET', 'POST'])
+def reset_with_token(token):
+    try:
+        serializer = URLSafeTimedSerializer(os.getenv('app.secret_key'))
+        email_address = serializer.loads(token, salt=os.getenv('salt'), max_age=3600)
+        return render_template('login/reset_with_token.html', token=token, _external=True)
+    except:
+        flash('The password reset link is invalid or has expired.', 'danger')
+        return redirect(url_for('recover'))
+    
+@app.route('/rst', methods = ['GET', 'POST'])
+def rst():
     if request.method == 'POST':
         token = request.form['token']
-        data = jwt.decode(token, os.getenv('app.secret_key'),algorithms=["HS256"])
-        email_address = data["email_address"]
-        password = data["password"]
-        # Create the user
+        serializer = URLSafeTimedSerializer(os.getenv('app.secret_key'))
+        email_address = serializer.loads(token, salt=os.getenv('salt'), max_age=3600)
+        password = request.form['password']
+        confirm_password = request.form['confirm_password']
+        if password != confirm_password:
+            flash('Passwords do not match.', 'danger')
+            return render_template('login/reset_with_token.html')
+        # Hash the password
+        password = generate_password_hash(request.form['password'])
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("UPDATE farmers SET status = 1 WHERE email = %s", (email_address,))
+        cursor.execute("UPDATE farmers SET password = %s WHERE email = %s", (password, email_address,))
         mysql.connection.commit()
 
-        msg = 'Account verified'
-        flash("Your account has successfully been registered!", "success")
-        return render_template('login/signup-login.html', msg=msg)
-    elif request.method == 'GET':
-        # Show registration form with message (if any)
-        return render_template('login/verify_email.html', msg=msg)
+        flash('Your password has been updated!', 'success')
+        return redirect(url_for('login'))
 
+    return render_template('login/reset_with_token.html')
+                  
 
-
-####Recover
 
 
 
@@ -458,7 +644,7 @@ def pay():
             Timestamp = datetime.now()
             times = Timestamp.strftime("%Y%m%d%H%M%S")
             password = "174379" + "bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919" + times
-            password = base64.b64encode(password.encode['utf-8'])
+            password = base64.b64encode(password.encode('utf-8')).decode('utf-8')
 
             data = {
                 "BusinessShortCode": "174379",
@@ -476,7 +662,7 @@ def pay():
 
             res = requests.post(endpoint, json = data, headers = headers)
             return res.json()
-      elif request.method == 'POST':
+      else:
         # Form is empty... (no POST data)
         msg = "Please fill out the form!", "danger"
         # Show mpesa form with message (if any)
@@ -497,9 +683,84 @@ def get_access_token():
     endpoint = 'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials'
 
     r = requests.get(endpoint, auth=HTTPBasicAuth(consumer_key, consumer_secret))
-    data = r.json()
-    return data['access_token']
+    if r.status_code == 200:
+        try:
+            data = r.json()
+            return data['access_token']
+        except requests.exceptions.RequestException as e:
+            print(f"Error: {e}")
+            print(f"Response: {r.text}")
+            return "Error occurred"
+    else:
+        print(f"Error: Received status code {r.status_code}")
+        print(r.text)  # print the response text
+        return "Error occurred"
 
+
+###################
+####CONTACT########
+###################
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+     if request.method == 'POST' and 'name' in request.form and 'email' in request.form and 'subject' in request.form and 'message' in request.form:
+            name = request.form['name']
+            email_address = request.form['email']
+            subject = request.form['subject']
+            message = request.form['message']
+
+            port = os.getenv('port')  # For starttls
+            smtp_server = os.getenv('smtp_server')
+            sender_email = os.getenv('sender_email')
+            receiver_email = email_address
+            password = os.getenv('password')
+            try:
+                message = MIMEMultipart("alternative")
+                message["Subject"] = subject
+                message["From"] = sender_email
+                message["To"] = receiver_email
+
+                # Create the plain-text and HTML version of your message
+                text = """\
+                Hi {name},
+                Thank you for contacting us and we will attend to you right away
+                With regards,
+                Avodoc""".format(name = name)
+                html = """\
+                <html>
+                <body>
+                    <p>Hi {name},<br>
+                    Thank you for contacting us and we will attend to you right away
+                    <br><br>
+                    </p>
+                    <br><br>
+                    <p>With regards,</p>
+                    <b>Avodoc</b>
+                </body>
+                </html>
+                """.format(name = name)
+
+                # Turn these into plain/html MIMEText objects
+                part1 = MIMEText(text, "plain")
+                part2 = MIMEText(html, "html")
+
+                # Add HTML/plain-text parts to MIMEMultipart message
+                # The email client will try to render the last part first
+                message.attach(part1)
+                message.attach(part2)
+
+                context = ssl.create_default_context()
+                with smtplib.SMTP(smtp_server, port) as server:
+                    server.ehlo()  # Can be omitted
+                    server.starttls(context=context)
+                    server.ehlo()  # Can be omitted
+                    server.login(sender_email, password)
+                    server.sendmail(sender_email, receiver_email, message.as_string())
+                flash('Your message has been sent', 'success')
+            except Exception as e:
+                print(f"Error sending email: {e}")
+                flash('Error sending email', 'danger')
+            return redirect(url_for('home2'))
+     return render_template('index3.html')
 
 
 
@@ -724,8 +985,6 @@ def delete_one(mysql, table_name, modifier, item_id):
 	except Exception as e:
 		print("Problem deleting from db: " + str(e))
 		return False
-      
-###############CONTACT####
 
 
 

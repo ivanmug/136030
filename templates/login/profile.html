@@ -16,9 +16,6 @@
        </div>
        <div class="login_menu">
           <ul >
-           <li class="nav-item">
-               <a class="nav-link" href="{{ url_for('crop_recommend') }}">Crop</a>
-           </li>
 
            <li class="nav-item">
                <a class="nav-link" href="{{ url_for('disease_prediction') }}">Disease</a>
@@ -27,32 +24,79 @@
                <a class="nav-link" href="{{ url_for('profile') }}">{{ username }}</a>
            </li>
            <li class="nav-item">
-               <a class="nav-link" href="#"><img src="{{ url_for('static', filename='images/search-icon.png') }}"></a>
-           </li>
-           <li class="nav-item">
                <a class="nav-link" href="{{ url_for('logout') }}">LOG OUT</a>
            </li>
           </ul>
        </div>
     </nav>
+    </div>
+
     <div class="container">
-    <h2>Profile Page</h2>
-    <div>
-        <p>Your account details are below:</p>
-        <table>
-            <tr>
-                <td>Username:</td>
-                <td>{{ account['username'] }}</td>
-            </tr>
-            <tr>
-                <td>Password:</td>
-                <td>******</td>
-            </tr>
-            <tr>
-                <td>Email:</td>
-                <td>{{ account['email'] }}</td>
-            </tr>
-        </table>
-    </div>
-    </div>
+        <div class="main-body">
+        
+             <br><br>      
+              
+                <div class="col-md-8">
+                  <div class="card mb-3">
+                    <div class="card-body">
+                      <div class="row">
+                        <div class="col-sm-3">
+                          <h6 class="mb-0">User Name</h6>
+                        </div>
+                        <div class="col-sm-9 text-secondary">
+                            {{ account['username'] }}
+                        </div>
+                      </div>
+                      <hr>
+                        <div class="row">
+                        <div class="col-sm-3">
+                          <h6 class="mb-0">Password</h6>
+                        </div>
+                        <div class="col-sm-9 text-secondary">
+                            ******
+                        </div>
+                      </div>
+                      <hr>
+                      <div class="row">
+                        <div class="col-sm-3">
+                          <h6 class="mb-0">Email</h6>
+                        </div>
+                        <div class="col-sm-9 text-secondary">
+                            {{ account['email'] }}
+                        </div>
+                      </div>
+                      <hr>
+                    
+                      <hr>
+                      
+                      <hr>
+                      <div class="row">
+                        <div class="col-sm-3">
+                          <h6 class="mb-0">Status</h6>
+                        </div>
+                        <div class="col-sm-9 text-secondary">
+                            Verified
+                        </div>
+                      </div>
+                      <hr>
+                      <div class="row">
+                        <div class="col-sm-12">
+                          
+                           <a class="btn btn-info " href="./edit_profile/edit/{{ account['id'] }}" class="link-button" >Edit</a> 
+                           <a class="btn btn-info " href="/home2" class="link-button" >Back</a> 
+                        </div>
+                      </div>
+    
+                    </div>
+                  </div>
+    
+                   
+    
+    
+    
+                </div>
+              </div>
+    
+            </div>
+       
 {% endblock %}
