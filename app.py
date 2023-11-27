@@ -444,7 +444,7 @@ def edit_profile(modifier_id, act):
 		data = fetch_one(mysql, "farmers", "id", modifier_id)
 	
 		if data:
-			return render_template('login/edit_profile.html', data=data, act=act)
+			return render_template('login/edit_profile.html', data=data, act=act, username=session['username'])
 		else:
 			return 'Error loading #%s' % modifier_id
           
@@ -465,7 +465,7 @@ def saveprofile():
 		if request.args['act'] == 'delete':
 			cat = request.args['cat']
 			delete_one(mysql, cat, request.args['modifier'], request.args['id'])
-	return redirect("./" + cat)
+	return redirect("/home2")
 
 # http://localhost:5000/python/logout - this will be the logout page
 @app.route('/logout')

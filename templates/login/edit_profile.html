@@ -35,7 +35,7 @@
 
         <div class="container">
             <form method="post" action="{{ url_for('saveprofile') }}" enctype='multipart/form-data' style="color: black;">
-                <fieldset>
+               
                     <legend class="hidden-first">Edit Profile</legend>
                     <input name="cat" type="hidden" value='farmers'>
                     <input name="modifier" type="hidden" value='id'>
@@ -67,7 +67,7 @@
                         name="status"
                         value="{{data['status']}}" /><br><br>
                     <input type="submit" value=" Save " class="btn btn-success">
-                </fieldset>
+                
             </form>
         </div>
 {% endblock %}
