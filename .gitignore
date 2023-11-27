@@ -2,4 +2,4 @@
 /myenv/
 /env/
 .env
-.pt
+plant_disease_model_1_latest.pt
