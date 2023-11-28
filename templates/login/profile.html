@@ -16,12 +16,14 @@
        </div>
        <div class="login_menu">
           <ul >
-
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('crop_recommend') }}">Crop</a>
+            </li>
            <li class="nav-item">
                <a class="nav-link" href="{{ url_for('disease_prediction') }}">Disease</a>
            </li>
            <li class="nav-item">
-               <a class="nav-link" href="{{ url_for('profile') }}">{{ username }}</a>
+               <a class="nav-link active text-capitalize" href="{{ url_for('profile') }}">{{ username }}</a>
            </li>
            <li class="nav-item">
                <a class="nav-link" href="{{ url_for('logout') }}">LOG OUT</a>
@@ -31,11 +33,11 @@
     </nav>
     </div>
 
-    <div class="container">
+    <div class="container layout_padding" style="padding-bottom: 280px;">
         <div class="main-body">
         
              <br><br>      
-              
+             <legend class="hidden-first">Edit Profile</legend>
                 <div class="col-md-8">
                   <div class="card mb-3">
                     <div class="card-body">
@@ -74,7 +76,7 @@
                         <div class="col-sm-3">
                           <h6 class="mb-0">Status</h6>
                         </div>
-                        <div class="col-sm-9 text-secondary">
+                        <div class="col-sm-9 text-secondary" style="color: green!important;font-weight: bold;">
                             Verified
                         </div>
                       </div>

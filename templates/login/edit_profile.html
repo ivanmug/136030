@@ -16,12 +16,14 @@
        </div>
        <div class="login_menu">
           <ul >
-
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('crop_recommend') }}">Crop</a>
+            </li>
            <li class="nav-item">
                <a class="nav-link" href="{{ url_for('disease_prediction') }}">Disease</a>
            </li>
            <li class="nav-item">
-               <a class="nav-link" href="{{ url_for('profile') }}">{{ username }}</a>
+               <a class="nav-link text-capitalize" href="{{ url_for('profile') }}">{{ username }}</a>
            </li>
            <li class="nav-item">
                <a class="nav-link" href="{{ url_for('logout') }}">LOG OUT</a>
@@ -33,7 +35,7 @@
     
         </div>
 
-        <div class="container">
+        <div class="container layout_padding" style="padding-bottom: 280px;">
             <form method="post" action="{{ url_for('saveprofile') }}" enctype='multipart/form-data' style="color: black;">
                
                     <legend class="hidden-first">Edit Profile</legend>
@@ -60,12 +62,7 @@
                         type="text" 
                         name="password"
                         value="{{data['password']}}" /><br>
-                    <label>Status</label>
-                    <input 
-                        class="form-control" 
-                        type="text" 
-                        name="status"
-                        value="{{data['status']}}" /><br><br>
+                    <br><br>
                     <input type="submit" value=" Save " class="btn btn-success">
                 
             </form>
