@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, Markup, url_for, session, flash
+from flask import Flask, render_template, request, redirect, Markup, url_for, session, flash,  Response, send_file
 import numpy as np
 import pandas as pd
 from disease_dic import disease_dic
@@ -36,6 +36,13 @@ from werkzeug.security import check_password_hash
 from PIL import Image
 import torchvision.transforms.functional as TF
 import CNN
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Image as ReportLabImage
+
 
 
 app = Flask(__name__)
@@ -116,6 +123,17 @@ def submit():
         supplement_name = supplement_info['supplement name'][pred]
         supplement_image_url = supplement_info['supplement image'][pred]
         supplement_buy_link = supplement_info['buy link'][pred]
+
+        # Store the image, user's name, and the result in the database
+        filez = os.path.join('uploads', filename).replace('\\', '/')
+        cur = mysql.connection.cursor()
+        # Fetch the farmer's id
+        cur.execute("SELECT id FROM farmers WHERE username = %s", (session['username'],))
+        farmer_id = cur.fetchone()[0]
+        cur.execute("INSERT INTO farmerimage(username, imagepath, result, farmer_id) VALUES (%s, %s, %s, %s)", (session['username'], filez, title,farmer_id))
+        mysql.connection.commit()
+        cur.close()
+
         return render_template('submit.html',username=session['username'] , title = title , desc = description , prevent = prevent , 
                                image_url = image_url , pred = pred ,sname = supplement_name , simage = supplement_image_url , buy_link = supplement_buy_link)
 
@@ -195,7 +213,7 @@ def register():
                 # Check if account exists using MySQL
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         # cursor.execute('SELECT * FROM farmers WHERE username = %s', (username))
-        cursor.execute( "SELECT * FROM farmers WHERE username LIKE %s", [username] )
+        cursor.execute( "SELECT * FROM farmers WHERE email LIKE %s", [email_address] )
         account = cursor.fetchone()
         # If account exists show error and validation checks
         if account:
@@ -766,6 +784,12 @@ def edit_admintable(modifier_id, act):
 		else:
 			return 'Error loading #%s' % modifier_id
 
+@app.route("/farmerimage")
+@login_required
+def farmerimage():
+	data = fetch_all(mysql, "farmerimage")
+	return render_template('admin/farmerimage.html', data=data, table_count=len(data))
+
 
 @app.route('/save', methods=['GET', 'POST'])
 @login_required
@@ -920,6 +944,63 @@ def delete_one(mysql, table_name, modifier, item_id):
 	except Exception as e:
 		print("Problem deleting from db: " + str(e))
 		return False
+      
+
+@app.route('/report', methods=['GET'])
+@login_required
+def report():
+    # Connect to the database
+    cur = mysql.connection.cursor()
+
+    # Execute a SELECT query to get the data from farmerimage table
+    cur.execute("SELECT * FROM farmerimage")
+    images_data = cur.fetchall()
+
+    # Get the column names from the cursor description
+    column_names = [desc[0] for desc in cur.description]
+
+    # Add the column names as the first row of the data
+    images_data = [column_names] + list(images_data)
+
+    cur.close()
+
+    # Create a new PDF file
+    pdf_file = os.path.join('static', 'report.pdf')
+    doc = SimpleDocTemplate(pdf_file, pagesize=letter)
+
+    # Add the heading and logo to the PDF
+    styles = getSampleStyleSheet()
+    title = Paragraph("Avodoc", styles['Title'])
+    logo_path = os.path.join('static', 'images', 'logo3.png')
+    logo = ReportLabImage(logo_path, width=100, height=50)  # Adjust the path and dimensions as needed
+
+    # Add a new paragraph
+    paragraph_text = "Avocados are not just a trendy addition to our diets but also a vital component of agricultural economies"
+    paragraph = Paragraph(paragraph_text, styles['BodyText'])
+
+    # Create the tables
+    images_table = Table(images_data)
+
+    # Customize the appearance of the tables
+    style = TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 14),
+
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0,0), (-1,-1), 1, colors.black)
+    ])
+    images_table.setStyle(style)
+
+    # Add the elements to the PDF
+    elements = [title, logo, Spacer(1, 50), paragraph, Spacer(1, 20), images_table]
+    doc.build(elements)
+
+    return send_file(pdf_file, as_attachment=True, download_name='report.pdf')
 
 
 
